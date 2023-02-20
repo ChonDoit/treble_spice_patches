@@ -1,0 +1,48 @@
+From ae2ccc907bcd117c1b8fa2113fde6b310f51c016 Mon Sep 17 00:00:00 2001
+From: ChonDoe <thphantomblog@gmail.com>
+Date: Wed, 8 Feb 2023 14:04:48 +0000
+Subject: [PATCH] Allow FOD color to be customized with
+ persist.sys.phh.fod_color
+
+---
+ .../systemui/biometrics/UdfpsSurfaceView.java      | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsSurfaceView.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsSurfaceView.java
+index 2488132b508b..177ee28dfbf5 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsSurfaceView.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsSurfaceView.java
+@@ -21,9 +21,11 @@ import android.annotation.Nullable;
+ import android.content.Context;
+ import android.graphics.drawable.Drawable;
+ import android.graphics.Canvas;
++import android.graphics.Color;
+ import android.graphics.Paint;
+ import android.graphics.PixelFormat;
+ import android.graphics.RectF;
++import android.os.SystemProperties;
+ import android.util.AttributeSet;
+ import android.util.Log;
+ import android.view.Surface;
+@@ -74,7 +76,17 @@ public class UdfpsSurfaceView extends SurfaceView implements SurfaceHolder.Callb
+ 
+         mSensorPaint = new Paint(0 /* flags */);
+         mSensorPaint.setAntiAlias(true);
+-        mSensorPaint.setColor(context.getColor(R.color.config_udfpsColor));
++        String colorStr = SystemProperties.get("persist.sys.phh.fod_color", "00ff00");
++         mSensorPaint.setARGB(255, 255, 255, 255);
++	try {
++		int parsedColor = Color.parseColor("#" + colorStr);
++		int r = (parsedColor >> 16) & 0xff;
++		int g = (parsedColor >>  8) & 0xff;
++		int b = (parsedColor >>  0) & 0xff;
++		mSensorPaint.setARGB(255, r, g, b);
++	} catch(Throwable t) {
++		Log.d("PHH", "Failed parsing color #" + colorStr, t);
++	}
+         mSensorPaint.setStyle(Paint.Style.FILL);
+ 
+         mUdfpsIconPressed = context.getDrawable(R.drawable.udfps_icon_pressed);
+-- 
+2.34.1
+
